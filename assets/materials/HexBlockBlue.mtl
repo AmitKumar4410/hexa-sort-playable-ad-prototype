@@ -1,6 +1,6 @@
 {
   "__type__": "cc.Material",
-  "_name": "HexBlockBlue",
+  "_name": "",
   "_objFlags": 0,
   "__editorExtras__": {},
   "_native": "",
@@ -12,17 +12,47 @@
   "_defines": [
     {
       "USE_INSTANCING": true
-    }
+    },
+    {},
+    {},
+    {}
   ],
   "_states": [
     {
       "rasterizerState": {},
+      "depthStencilState": {},
       "blendState": {
         "targets": [
           {}
         ]
-      },
-      "depthStencilState": {}
+      }
+    },
+    {
+      "rasterizerState": {},
+      "depthStencilState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      }
+    },
+    {
+      "rasterizerState": {},
+      "depthStencilState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      }
+    },
+    {
+      "rasterizerState": {},
+      "depthStencilState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      }
     }
   ],
   "_props": [
@@ -34,9 +64,19 @@
         "b": 232,
         "a": 255
       },
-      "roughness": 0.55,
-      "metallic": 0,
-      "specularIntensity": 0.35
-    }
+      "shininessExponent": 19.99999952104794,
+      "specularColor": {
+        "__type__": "cc.Color",
+        "r": 59,
+        "g": 55,
+        "b": 55,
+        "a": 0
+      },
+      "specularFactor": 0.25,
+      "transparencyFactor": 0
+    },
+    {},
+    {},
+    {}
   ]
 }

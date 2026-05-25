@@ -38,7 +38,7 @@ export class GridCellFactory {
         // Apply manual offset AFTER syncVisualTiles (which calculates and resets center based on tile bounds)
         const collider = stackNode.getComponent(BoxCollider);
         if (collider) {
-            collider.center = new Vec3(0, -0.06, 0);
+            collider.center = new Vec3(0, -0.08, 0);
         }
 
         // Apply the material (Flyweight Pattern)

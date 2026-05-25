@@ -36,7 +36,7 @@ export class HexStack extends Component {
         const collider = this.getComponent(BoxCollider);
         if (collider) {
             const bounds = this.getVisualBounds(spacing);
-            const height = 0.17;
+            const height = 0.23;
             // const height = bounds.topOffset - bounds.bottomOffset;
 
             const size = collider.size.clone();
