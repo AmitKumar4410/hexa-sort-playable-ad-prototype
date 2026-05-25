@@ -39,10 +39,10 @@
             "_value": false
           },
           "mask": {
-            "_value": true
+            "_value": false
           },
           "graphics": {
-            "_value": true
+            "_value": false
           },
           "ui-skew": {
             "_value": false
@@ -202,11 +202,9 @@
           "custom-pipeline",
           "geometry-renderer",
           "gfx-webgl",
-          "graphics",
           "intersection-2d",
           "light-probe",
           "marionette",
-          "mask",
           "physics-ammo",
           "primitive",
           "profiler",
