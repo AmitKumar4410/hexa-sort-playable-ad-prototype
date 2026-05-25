@@ -7,22 +7,19 @@ const { ccclass, property } = _decorator;
 
 @ccclass('StackMover')
 export class StackMover extends Component {
-    @property({ tooltip: 'Number of tiles in a stack to trigger the win celebration.' })
+    @property({ tooltip: 'Required stacks in collection to win.' })
     public winThreshold: number = 6;
 
-    @property({ tooltip: 'Height the stack lifts off before flying to destination.' })
+    @property({ tooltip: 'Lift height for movement animation.' })
     public liftHeight: number = 2.0;
 
-    @property({ tooltip: 'Duration of the lift animation in seconds.' })
+    @property({ tooltip: 'Duration of lift phase.' })
     public liftDuration: number = 0.15;
 
-    @property({ tooltip: 'Duration of the fly-over animation in seconds.' })
-    public flyDuration: number = 0.3;
+    @property({ tooltip: 'Duration of drop phase.' })
+    public dropDuration: number = 0.4;
 
-    @property({ tooltip: 'Duration of the drop animation in seconds.' })
-    public dropDuration: number = 0.15;
-
-    @property({ type: Node, tooltip: '(Optional) A particle effect node to play on win.' })
+    @property({ type: Node, tooltip: 'Target collection node.' })
     public collectionStack: Node | null = null;
 
     private _isMoving: boolean = false;
@@ -42,13 +39,7 @@ export class StackMover extends Component {
         if (this._isMoving) return;
         this._isMoving = true;
 
-        // const startWorldPos = stackNode.worldPosition.clone();
-
-        // Find the collection node to compute precise drop height
-        // const gridRoot = stackNode.parent?.parent?.parent; // pivot -> shelf -> grid
-        // const this.collectionStack = gridRoot?.getChildByName('CollectionColumn');
-
-        // Default to targetWorldPos.y if empty
+        // default vertical position
         let collectionTopY = targetWorldPos.y;
 
         if (this.collectionStack && this.collectionStack.children.length > 0) {
@@ -72,30 +63,25 @@ export class StackMover extends Component {
 
         Tween.stopAllByTarget(stackNode);
         tween(stackNode)
-            .to(this.flyDuration, { worldPosition: dropPos }, { easing: 'bounceOut' })
+            .to(this.dropDuration, { worldPosition: dropPos }, { easing: 'bounceOut' })
             .call(() => {
                 this._isMoving = false;
 
-                // Update model
+                // update board model
                 const colorId = fromStack.colorId;
                 const count = fromStack.tileCount;
 
                 model.setSlotOccupied(fromStack.currentTier, fromStack.currentIndex, false, null);
                 model.collect(colorId, count);
-                model.collectionStackCount += 1;  // Track number of stacks, not just tiles
-
-                // // Reparent to collection node
-                // const gridRoot = stackNode.parent?.parent?.parent; // pivot -> shelf -> grid
-                // const this.collectionStack = gridRoot?.getChildByName('CollectionColumn');
+                model.collectionStackCount += 1;
 
                 if (this.collectionStack) {
                     stackNode.setParent(this.collectionStack, true);
-                    // the tween already placed it at the correct world position
                 }
 
                 const newStackCount = this.collectionStack ? this.collectionStack.children.length : 0;
 
-                // Check win condition based on number of STACKS, not individual tiles
+                // check if level complete
                 if (newStackCount >= this.winThreshold) {
                     this.triggerWin();
                 }

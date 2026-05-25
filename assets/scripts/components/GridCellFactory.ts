@@ -1,9 +1,7 @@
-import { _decorator, BoxCollider, Component, instantiate, Material, MeshRenderer, Node, Prefab, Vec3 } from 'cc';
+import { BoxCollider, instantiate, Material, MeshRenderer, Node, Prefab, Vec3 } from 'cc';
 import { HexStack } from './HexStack';
 import { HexSpawnData } from '../data/LevelData';
-const { ccclass, property } = _decorator;
 
-@ccclass('GridCellFactory')
 export class GridCellFactory {
     private stackPrefab: Prefab | null = null;
 
@@ -11,9 +9,7 @@ export class GridCellFactory {
         this.stackPrefab = stackPrefab;
     }
 
-    /**
-    * Creates a new Stack Node.
-    */
+    // create new stack node
     public createStack(): Node {
         if (!this.stackPrefab) {
             return new Node("EmptyStack");
@@ -21,10 +17,7 @@ export class GridCellFactory {
         return instantiate(this.stackPrefab);
     }
 
-    /**
-    * Creates a new Stack Node and configures its data and material 
-    * based on the level JSON (Data-Driven + Factory Pattern).
-    */
+    // spawn stack configured from level JSON data
     public createConfiguredStack(data: HexSpawnData, materials: Material[]): Node {
         const stackNode = this.createStack();
         const hexStack = stackNode.getComponent(HexStack);
@@ -35,14 +28,13 @@ export class GridCellFactory {
             hexStack.syncVisualTiles();
         }
 
-        // Apply manual offset AFTER syncVisualTiles (which calculates and resets center based on tile bounds)
+        // offset collider center after visual tiles are synced
         const collider = stackNode.getComponent(BoxCollider);
         if (collider) {
             collider.center = new Vec3(0, -0.08, 0);
         }
 
-        // Apply the material (Flyweight Pattern)
-        // stackNode.children[0]
+        // apply corresponding shared material
         stackNode.children.forEach(child => {
             const meshRenderer = child.getComponentInChildren(MeshRenderer);
             if (meshRenderer && materials && materials[data.colorId]) {

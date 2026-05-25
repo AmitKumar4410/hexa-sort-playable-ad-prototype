@@ -100,10 +100,10 @@
     },
     "_lrot": {
       "__type__": "cc.Quat",
-      "x": -0.06397656665577071,
+      "x": -0.06397656665577073,
       "y": -0.44608233363525845,
-      "z": -0.8239028751062036,
-      "w": -0.3436591377065261
+      "z": -0.8239028751062035,
+      "w": -0.34365913770652606
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -115,8 +115,8 @@
     "_layer": 1073741824,
     "_euler": {
       "__type__": "cc.Vec3",
-      "x": -117.894,
-      "y": -194.909,
+      "x": -117.89399999999999,
+      "y": 165.091,
       "z": 38.562
     },
     "_id": "26v/Nhmd5Id6kANv+COI0m"
@@ -282,7 +282,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": -0.506,
+      "y": -0.5060000000000429,
       "z": -3.863
     },
     "_lrot": {
@@ -404,8 +404,7 @@
     "winThreshold": 6,
     "liftHeight": 2,
     "liftDuration": 0.15,
-    "flyDuration": 0.3,
-    "dropDuration": 0.15,
+    "dropDuration": 0.4,
     "collectionStack": {
       "__id__": 11
     },
@@ -1746,7 +1745,7 @@
     "_enabled": true,
     "__prefab": null,
     "stackPrefab": {
-      "__uuid__": "f5ab2e53-9fc1-46b1-84df-b6118e04dfd7",
+      "__uuid__": "f0613f5c-4e75-484f-b0d7-db5b8432100c",
       "__expectedType__": "cc.Prefab"
     },
     "tiers": 6,
@@ -1863,7 +1862,7 @@
         "__id__": 53
       }
     ],
-    "_active": true,
+    "_active": false,
     "_components": [
       {
         "__id__": 84
@@ -3338,7 +3337,7 @@
     "_isAbsVerticalCenter": true,
     "_originalWidth": 0,
     "_originalHeight": 0,
-    "_alignMode": 2,
+    "_alignMode": 1,
     "_lockFlags": 0,
     "_id": "c0W45wa5lM+aqwJaMLTroT"
   },
@@ -3452,7 +3451,7 @@
       "x": 0.452588,
       "y": 0.607642,
       "z": 0.755699,
-      "w": 0
+      "w": 0.8
     },
     "_skyIllumLDR": 0.8,
     "_groundAlbedoLDR": {
@@ -3466,7 +3465,7 @@
   {
     "__type__": "cc.ShadowsInfo",
     "_enabled": false,
-    "_type": 0,
+    "_type": 1,
     "_normal": {
       "__type__": "cc.Vec3",
       "x": 0,
@@ -3485,8 +3484,8 @@
     "_maxReceived": 4,
     "_size": {
       "__type__": "cc.Vec2",
-      "x": 1024,
-      "y": 1024
+      "x": 512,
+      "y": 512
     }
   },
   {
@@ -3509,8 +3508,14 @@
     "_enabled": true,
     "_useHDR": true,
     "_editableMaterial": null,
-    "_reflectionHDR": null,
-    "_reflectionLDR": null,
+    "_reflectionHDR": {
+      "__uuid__": "f9a26200-1515-4910-a658-b5d7f3b9ed80@b47c0",
+      "__expectedType__": "cc.TextureCube"
+    },
+    "_reflectionLDR": {
+      "__uuid__": "e8cf6a8a-2cb6-44ab-8d94-578e3b762e00@b47c0",
+      "__expectedType__": "cc.TextureCube"
+    },
     "_rotationAngle": 0
   },
   {

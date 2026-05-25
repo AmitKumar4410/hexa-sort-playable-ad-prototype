@@ -8,15 +8,13 @@ export interface StackVerticalBounds {
 
 @ccclass('HexStack')
 export class HexStack extends Component {
-    /** Color ID (e.g. 0=Red, 1=Blue, 2=Yellow). Set in prefab inspector. */
-    @property({ type: CCInteger, tooltip: 'The color ID of this hex stack.' })
-    public colorId: number = 0;
+    // Color ID (0=Blue, 1=Green, etc.)
+    @property(CCInteger) public colorId: number = 0;
 
-    /** Current height of this stack (number of tiles). Grows when same-color stacks merge. */
-    @property({ type: CCInteger, tooltip: 'Number of tiles currently in this stack.' })
-    public tileCount: number = 6;
+    // Current tile height of stack
+    @property(CCInteger) public tileCount: number = 6;
 
-    /** Grid slot this stack is currently sitting on */
+    // Current grid coordinates
     public currentTier: number = -1;
     public currentIndex: number = -1;
 
@@ -37,7 +35,6 @@ export class HexStack extends Component {
         if (collider) {
             const bounds = this.getVisualBounds(spacing);
             const height = 0.23;
-            // const height = bounds.topOffset - bounds.bottomOffset;
 
             const size = collider.size.clone();
             size.y = height;

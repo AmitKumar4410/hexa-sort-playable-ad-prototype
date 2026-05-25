@@ -7,40 +7,39 @@ const { ccclass, property } = _decorator;
 
 @ccclass('UIManager')
 export class UIManager extends Component {
-    @property({ type: Node, tooltip: 'The root CTA canvas (holds blur + panel + button).' })
+    @property({ type: Node, tooltip: 'Root canvas for CTA panel.' })
     public ctaCanvas: Node | null = null;
 
-    @property({ type: Node, tooltip: 'The blur/background fade layer.' })
+    @property({ type: Node, tooltip: 'Background blur overlay.' })
     public blurLayer: Node | null = null;
 
-    @property({ type: Node, tooltip: 'The main CTA panel.' })
+    @property({ type: Node, tooltip: 'CTA panel node.' })
     public ctaPanel: Node | null = null;
 
-    @property({ type: Button, tooltip: 'The Download Now button.' })
+    @property({ type: Button, tooltip: 'Download button.' })
     public downloadButton: Button | null = null;
 
-    @property({ type: Label, tooltip: 'Optional title text.' })
+    @property({ type: Label, tooltip: 'Title label.' })
     public titleLabel: Label | null = null;
 
-    @property({ type: Label, tooltip: 'Optional description text.' })
+    @property({ type: Label, tooltip: 'Description label.' })
     public descriptionLabel: Label | null = null;
 
-    @property({ tooltip: 'Duration of blur fade-in animation (seconds).' })
+    @property({ tooltip: 'Blur fade duration.' })
     public blurFadeDuration: number = 0.3;
 
-    @property({ tooltip: 'Delay before panel slides in (seconds).' })
+    @property({ tooltip: 'Panel slide in delay.' })
     public panelSlideDelay: number = 0.2;
 
-    @property({ tooltip: 'Duration of panel slide-up animation (seconds).' })
+    @property({ tooltip: 'Panel slide duration.' })
     public panelSlideDuration: number = 0.5;
 
     @property(Button) closeButton: Button | null = null;
 
-    private _gameRoot: Node | null = null;
     private _isCtaActive: boolean = false;
 
     onEnable() {
-        // Listen for win events from gameplay via EventBus
+        // subscribe to game events
         EventBus.on(GameEvents.GAME_WON, this.onGameWon, this);
     }
 
@@ -49,27 +48,22 @@ export class UIManager extends Component {
     }
 
     onLoad() {
-        // Hide CTA on startup
+        // initialize UI state
         if (this.ctaCanvas) {
             this.ctaCanvas.active = false;
         }
     }
 
-    /**
-     * Called when gameplay emits 'hex-win' event.
-     * Disables 3D interaction and activates CTA.
-     */
+    // game won handler
     private onGameWon() {
-        console.log('UIManager: 🎉 Game won! Activating CTA...');
+        console.log('UIManager:Game won! Activating CTA...');
         this._isCtaActive = true;
 
         this.disableGameplayInput();
         this.showCta();
     }
 
-    /**
-     * Disable all gameplay input to prevent further rotation/interaction.
-     */
+    // disable shelf rotator node
     private disableGameplayInput() {
         const scene = director.getScene();
         if (!scene) return;
@@ -94,9 +88,7 @@ export class UIManager extends Component {
         }
     }
 
-    /**
-     * Fade in blur, then slide in panel with button.
-     */
+    // animate cta display
     private showCta() {
         if (!this.ctaCanvas) {
             console.error('UIManager: ctaCanvas is not assigned!');
@@ -106,7 +98,7 @@ export class UIManager extends Component {
         // Make canvas visible
         this.ctaCanvas.active = true;
 
-        // ── STEP 1: Fade in blur ──
+        // fade background in
         if (this.blurLayer) {
             const opacityComp = this.blurLayer.getComponent(UIOpacity);
             if (!opacityComp) return;
@@ -116,7 +108,7 @@ export class UIManager extends Component {
                 .start();
         }
 
-        // ── STEP 2: Slide in panel (after delay) ──
+        // animate panel sliding up
         if (this.ctaPanel) {
             const panelStartPos = this.ctaPanel.position.clone();
             this.ctaPanel.setPosition(panelStartPos.x, panelStartPos.y - 300); // Start below
@@ -128,7 +120,7 @@ export class UIManager extends Component {
             }, this.panelSlideDelay);
         }
 
-        // ── STEP 3: Wire button callback ──
+        // setup button listener callbacks
         this.downloadButton?.node.on(Button.EventType.CLICK, this.onDownloadClicked, this);
         this.closeButton?.node.on(Button.EventType.CLICK, this.onCloseClicked, this);
     }
@@ -142,25 +134,15 @@ export class UIManager extends Component {
         }
     }
 
-    /**
-     * Called when the Download button is tapped.
-     * In a real game, this would open the app store or redirect to download.
-     */
+    // redirect player to download url
     private onDownloadClicked() {
-        console.log('UIManager: 📱 Download button clicked!');
+        console.log('UIManager: Download button clicked!');
 
-        // Open the download URL
-        console.log(`Opening: ${DOWNLOAD_URL}`);
-        // window.open(DOWNLOAD_URL);
         sys.openURL(DOWNLOAD_URL);
-
-        // Emit event via EventBus for analytics/tracking
         EventBus.emit(GameEvents.CTA_DOWNLOAD_CLICKED);
     }
 
-    /**
-     * Optional: Reset CTA for next gameplay session.
-     */
+    // reset UI to default state
     public resetCta() {
         this._isCtaActive = false;
         if (this.ctaCanvas) {

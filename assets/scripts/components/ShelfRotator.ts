@@ -4,28 +4,18 @@ import { GameEvents, ShelfSnappedPayload } from '../data/Events';
 import { EventBus } from '../EventBus';
 const { ccclass, property } = _decorator;
 
-// ─── Snap Strategy Interface ────────────────────────────────────────────────
 export interface SnapStrategy {
-    /**
-     * Given the shelf's current angle and the snap interval,
-     * return the angle the shelf SHOULD snap to.
-     */
     calculate(currentAngle: number, intervalDeg: number, velocityDeg: number): number;
 }
 
-/**
- * Always snaps to the nearest slot boundary, regardless of drag velocity.
- */
+// standard closest-slot snap
 export class NearestSlotSnap implements SnapStrategy {
     calculate(currentAngle: number, intervalDeg: number, _velocity: number): number {
         return Math.round(currentAngle / intervalDeg) * intervalDeg;
     }
 }
 
-/**
- * Snaps one slot further in the direction of the drag if the velocity
- * is above a threshold — gives the shelf a "flick" feel.
- */
+// snap with drag momentum
 export class MomentumSnap implements SnapStrategy {
     constructor(public velocityThreshold: number = 300) { }
 
@@ -39,14 +29,9 @@ export class MomentumSnap implements SnapStrategy {
     }
 }
 
-// ─── Event payload type ─────────────────────────────────────────────────────
-// Imported from ../Events
-
 export const SHELF_EVENTS = {
     SHELF_SNAPPED: 'shelf-snapped',
 } as const;
-
-// ─── Internal State Machine ──────────────────────────────────────────────────
 
 enum RotatorState { IDLE, DRAGGING, SNAPPING }
 
@@ -72,10 +57,9 @@ export class ShelfRotator extends Component {
     public slotsPerTier: number = 12;
     public gridModel: GridModel | null = null;
 
-    // Strategy: swap this to MomentumSnap for a flick feel
+    // snap strategy
     public snapStrategy: SnapStrategy = new NearestSlotSnap();
 
-    // ─── Private state ──────────────────────────────────────────────
     private _state: RotatorState = RotatorState.IDLE;
     private _activeTier: number = -1;
     private _lastActiveTier: number = -1;  // Track previous tier for auto-rotate logic
@@ -91,23 +75,13 @@ export class ShelfRotator extends Component {
     private _projectedShelfPos: Vec3 = new Vec3();
     private _ray: geometry.Ray = new geometry.Ray();
 
-    /**
-     * Stores the TRUE original Y-angle for every shelf, recorded the very
-     * first time that shelf is touched. Used as the reset target so that
-     * rotating the same shelf twice does not corrupt the "go back home" angle.
-     *
-     * DESIGN PATTERN: Registry / Memento (lightweight)
-     * We snapshot state once and never overwrite it, giving us a stable
-     * restore-point regardless of how many times the shelf has been rotated.
-     */
+    // cache starting rotation angles for auto-restore
     private _originalShelfAngles: Map<number, number> = new Map();
 
-    // InputManager reads this to decide whether to fire a raycast
+    // true if dragging is in progress
     public get isDragging(): boolean {
         return this._gestureWasDrag || this._state === RotatorState.DRAGGING || this._state === RotatorState.SNAPPING;
     }
-
-    // ─── Lifecycle ───────────────────────────────────────────────────
     onEnable() {
         input.on(Input.EventType.TOUCH_START, this.onTouchStart, this);
         input.on(Input.EventType.TOUCH_MOVE, this.onTouchMove, this);
@@ -122,7 +96,7 @@ export class ShelfRotator extends Component {
         input.off(Input.EventType.TOUCH_CANCEL, this.onTouchEnd, this);
     }
 
-    // ─── Touch Handlers ──────────────────────────────────────────────
+
 
     private onTouchStart(event: EventTouch) {
         if (this._state === RotatorState.SNAPPING) return;   // Block during snap
@@ -135,30 +109,28 @@ export class ShelfRotator extends Component {
         this._lastDeltaX = 0;
         const selectedTier = this.pickTierFromTouch(pos.x, pos.y);
 
-        // Prevent touching/rotating if any tier is locked (meaning collection animation is running)!
+        // block input if collection is active
         if (this.gridModel && this.gridModel.lockedTiers && this.gridModel.lockedTiers.some(locked => locked)) {
-            console.log(`ShelfRotator: 🔒 Collection animation active! Cannot rotate.`);
+            console.log(`ShelfRotator: collection animation active, blocking rotation`);
             this._activeTier = -1;
             return;
         }
 
-        // ─── Check if previously touched tier has a non-matching stack at index 0 ───
+        // reset shelf if it contains an unmatched stack
         if (this._lastActiveTier >= 0 && this._lastActiveTier !== selectedTier && this.gridModel) {
             if (this.gridModel.hasNonMatchingStackAtIndex0(this._lastActiveTier)) {
-                // Use the true original angle (from registry), not the last-drag start angle
                 const resetAngle = this._originalShelfAngles.get(this._lastActiveTier) ?? 0;
-                console.log(`ShelfRotator: 🔄 Auto-rotating tier ${this._lastActiveTier} back to original angle ${resetAngle.toFixed(1)}°...`);
+                console.log(`ShelfRotator: resetting tier ${this._lastActiveTier} to ${resetAngle.toFixed(1)}°`);
                 this.autoRotateTierBack(this._lastActiveTier, resetAngle);
-                // Clear it so we don't auto-rotate it again unnecessarily
                 this._lastActiveTier = -1;
             }
         }
 
         this._activeTier = selectedTier;
 
-        // ─── NEW: Check if the selected tier is locked by collection height ───
+        // check height limit lock
         if (this._activeTier >= 0 && this.gridModel && this.gridModel.shouldTierBeLocked(this._activeTier)) {
-            console.log(`ShelfRotator: 🔒 Tier ${this._activeTier} locked by collection height!`);
+            console.log(`ShelfRotator: tier ${this._activeTier} is locked by collection height`);
             this.triggerBumpFeedback(this._activeTier);
             this._activeTier = -1;
             return;
@@ -167,11 +139,9 @@ export class ShelfRotator extends Component {
         if (this._activeTier >= 0 && this.shelfNodes[this._activeTier]) {
             this._angleAtDragStart = this.shelfNodes[this._activeTier].eulerAngles.y;
 
-            // ─── Record the TRUE starting angle the very first time this shelf
-            //     is ever touched. Never overwrite it on subsequent touches.
+            // cache original angle
             if (!this._originalShelfAngles.has(this._activeTier)) {
                 this._originalShelfAngles.set(this._activeTier, this._angleAtDragStart);
-                console.log(`ShelfRotator: 📌 Recorded original angle for tier ${this._activeTier}: ${this._angleAtDragStart.toFixed(1)}°`);
             }
         } else {
             console.warn(`ShelfRotator: Could not determine valid tier for screenY ${pos.y}. shelfNodes length is ${this.shelfNodes.length}`);
@@ -221,12 +191,7 @@ export class ShelfRotator extends Component {
         this.snapShelf(this._activeTier);
     }
 
-    // ─── Core Logic ──────────────────────────────────────────────────
-
-    /**
-     * Picks which tier the player touched using precise 3D raycasting.
-     * Returns -1 if the player touches empty space outside the shelves.
-     */
+    // raycast screen touch to check shelf hits
     private pickTierFromTouch(screenX: number, screenY: number): number {
         if (this.shelfNodes.length === 0) return -1;
 
@@ -240,7 +205,7 @@ export class ShelfRotator extends Component {
                 results.sort((a, b) => a.distance - b.distance);
                 const closestHit = results[0];
 
-                // Walk up node tree to see which shelf we hit
+                // find parent shelf
                 let current: Node | null = closestHit.collider.node;
                 while (current) {
                     const tierIndex = this.shelfNodes.indexOf(current);
@@ -265,14 +230,7 @@ export class ShelfRotator extends Component {
         return this.mainCamera;
     }
 
-    /**
-     * Calculates the snap target and tweens the shelf to it.
-     *
-     * TEACHING NOTE — State Pattern in action:
-     * The state transitions here prevent the player from touching anything
-     * mid-snap. SNAPPING → IDLE only happens inside the tween callback,
-     * ensuring the transition is atomic.
-     */
+    // snap shelf to nearest slot increment
     private snapShelf(tier: number) {
         const shelf = this.shelfNodes[tier];
         const intervalDeg = 360 / this.slotsPerTier;
@@ -283,7 +241,7 @@ export class ShelfRotator extends Component {
 
         const targetAngle = this.snapStrategy.calculate(currentAngle, intervalDeg, velocityDeg);
 
-        // How many steps did this snap move?
+        // calculate step count
         const prevSnapAngle = Math.round(this._angleAtDragStart / intervalDeg) * intervalDeg;
         const stepsDelta = Math.round((targetAngle - prevSnapAngle) / intervalDeg);
 
@@ -299,13 +257,9 @@ export class ShelfRotator extends Component {
                     this.gridModel.updateShelfOffset(tier, stepsDelta);
                 }
 
-                // ── Observer Pattern: emit event so listeners can react ──
+                // emit events to notify listeners
                 const payload: ShelfSnappedPayload = { tier, snappedAngle: targetAngle, stepsDelta };
-
-                // Emit via node for backward compatibility with AlignmentChecker
                 this.node.emit(SHELF_EVENTS.SHELF_SNAPPED, payload);
-
-                // Also emit via EventBus for new centralized event system
                 EventBus.emit(GameEvents.SHELF_SNAPPED, payload);
 
                 console.log(
@@ -320,10 +274,7 @@ export class ShelfRotator extends Component {
             .start();
     }
 
-    /**
-     * Play a bump animation when the player tries to rotate a locked tier.
-     * Subtle bounce-back effect communicates "this shelf is locked".
-     */
+    // locked tier bump animation
     private triggerBumpFeedback(tier: number) {
         const shelf = this.shelfNodes[tier];
         if (!shelf) return;
@@ -338,10 +289,7 @@ export class ShelfRotator extends Component {
         console.log(`ShelfRotator: 🔄 Bump feedback on tier ${tier}`);
     }
 
-    /**
-     * Auto-rotate a tier back to its starting rotation.
-     * Used when the player leaves a non-matching stack at the collection point.
-     */
+    // auto-rotate back to starting position
     private autoRotateTierBack(tier: number, targetAngle: number) {
         const shelf = this.shelfNodes[tier];
         if (!shelf || !this.gridModel) return;
@@ -354,7 +302,7 @@ export class ShelfRotator extends Component {
                 eulerAngles: new Vec3(shelf.eulerAngles.x, targetAngle, shelf.eulerAngles.z)
             }, { easing: this.snapEasing as any })
             .call(() => {
-                // Update the model's offset record
+                // update model offsets
                 const prevSnapAngle = Math.round(currentAngle / intervalDeg) * intervalDeg;
                 const stepsDelta = Math.round((targetAngle - prevSnapAngle) / intervalDeg);
                 this.gridModel!.updateShelfOffset(tier, stepsDelta);

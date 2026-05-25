@@ -14,16 +14,14 @@ export class ShelfMatchChecker extends Component {
     public gridView: GridView | null = null;
     public stackMover: StackMover | null = null;
 
-    /** The node that ShelfRotator lives on — we listen to its events. */
-    @property({ type: Node, tooltip: 'The node that has the ShelfRotator component.' })
-    public shelfRotatorNode: Node | null = null;
+    @property(Node) public shelfRotatorNode: Node | null = null;
 
     private _isClearingColumn: boolean = false;
 
 
     onEnable() {
         if (!this.shelfRotatorNode) {
-            console.error('AlignmentChecker: shelfRotatorNode is not assigned!');
+            console.error('ShelfMatchChecker: shelfRotatorNode not assigned');
             return;
         }
         this.shelfRotatorNode.on(SHELF_EVENTS.SHELF_SNAPPED, this.onShelfSnapped, this);
@@ -35,18 +33,18 @@ export class ShelfMatchChecker extends Component {
 
 
     private onShelfSnapped(payload: ShelfSnappedPayload) {
-        console.log(`AlignmentChecker: 🔍 Snapped tier ${payload.tier}! Checking collection match...`);
+        console.log(`ShelfMatchChecker: Tier ${payload.tier} snapped, checking matches`);
         this.checkAllTiersForCollection();
     }
 
     public updateStackVerticalPositions() {
-        // Renamed/repurposed to trigger collection check instead of vertical stacking
+        // trigger collection check
         this.checkAllTiersForCollection();
     }
 
     private checkAllTiersForCollection() {
         if (!this.gridModel || !this.gridView || !this.stackMover || this._isClearingColumn) return;
-        if (this.stackMover.isMoving) return; // Wait for current animation to finish
+        if (this.stackMover.isMoving) return; // wait for move to finish
 
         for (let t = 0; t < this.gridModel.tiers; t++) {
             const tierSlots = this.gridModel.getTierSnapshot(t);
@@ -55,7 +53,7 @@ export class ShelfMatchChecker extends Component {
                 if (worldIndex === 0 && slot.isOccupied && slot.stack) {
                     if (this.gridModel.canCollect(slot.stack.colorId)) {
                         this.collectStack(t, slot.stack);
-                        return; // Process one at a time for "drop one by one" effect
+                        return; // drop one by one
                     }
                 }
             }
@@ -68,7 +66,7 @@ export class ShelfMatchChecker extends Component {
         const collectionWorldPos = this.gridView.getCollectionWorldPosition();
         if (!collectionWorldPos) return;
 
-        // Temporarily lock the tier from being rotated while animating
+        // lock tier rotation while stack is moving
         this.gridModel.lockedTiers[tier] = true;
 
         this.stackMover.moveStackToCollection(
@@ -82,7 +80,7 @@ export class ShelfMatchChecker extends Component {
                 if (newTileCount >= this.stackMover!.winThreshold) {
                     this.scheduleFullColumnClear();
                 } else {
-                    // Check if other tiers can fall in
+                    // check if more stacks can fall in
                     this.checkAllTiersForCollection();
                 }
             }
@@ -91,42 +89,60 @@ export class ShelfMatchChecker extends Component {
 
     private scheduleFullColumnClear() {
         this._isClearingColumn = true;
-        console.log("AlignmentChecker: 🎉 COLLECTION CLEAR! Threshold reached!");
-
-        // if (this.stackMover && this.stackMover.winEffect) {
-        //     this.stackMover.winEffect.active = true;
-        //     const ps = this.stackMover.winEffect.getComponent(ParticleSystem);
-        //     ps?.play();
-        // }
+        console.log("ShelfMatchChecker: Collection clear threshold reached");
 
         const collectionNode = this.gridView?.getCollectionNode();
 
         this.scheduleOnce(() => {
             if (collectionNode) {
-                const children = [...collectionNode.children];
-                for (const child of children) {
-                    Tween.stopAllByTarget(child);
-                    tween(child)
-                        .to(0.3, { scale: Vec3.ZERO })
-                        .call(() => {
-                            child.destroy();
-                        })
-                        .start();
-                }
+                const children = [...collectionNode.children].reverse();
+                let destroyed = 0;
+
+                children.forEach((child, i) => {
+                    // stagger each stack's pop so they cascade one after another
+                    this.playDestroyAnimation(child, i * 0.08, () => {
+                        destroyed++;
+                        if (destroyed === children.length) {
+                            this.scheduleOnce(() => {
+                                PhysicsSystem.instance.syncSceneToPhysics();
+                                this.gridModel?.clearCollection();
+                                this._isClearingColumn = false;
+                                this.checkAllTiersForCollection();
+                            }, 0.1);
+                        }
+                    });
+                });
+            } else {
+                // fallback if collection node is missing
+                this.scheduleOnce(() => {
+                    PhysicsSystem.instance.syncSceneToPhysics();
+                    this.gridModel?.clearCollection();
+                    this._isClearingColumn = false;
+                    this.checkAllTiersForCollection();
+                }, 0.35);
             }
+        }, 0.4);
+    }
 
-            this.scheduleOnce(() => {
-                PhysicsSystem.instance.syncSceneToPhysics();
-                this.gridModel?.clearCollection();
-                this._isClearingColumn = false;
+    private playDestroyAnimation(node: Node, delay: number, onDone: () => void) {
+        Tween.stopAllByTarget(node);
+        const s = node.scale.clone();
+        const e = node.eulerAngles.clone();
+        const spinDir = 1;
+        const spinAngle = e.y + spinDir * 45;
 
-                // Check if any other stacks were waiting to fall in
-                this.checkAllTiersForCollection();
-
-                // Emit win event via EventBus
-                // EventBus.emit(GameEvents.GAME_WON);
-            }, 0.35);
-
-        }, 0.5);
+        this.scheduleOnce(() => {
+            tween(node)
+                .to(0.08, { scale: new Vec3(s.x * 1.25, s.y * 1.25, s.z * 1.25) }, { easing: 'quadOut' })
+                .parallel(
+                    tween(node).to(0.22, { scale: Vec3.ZERO }, { easing: 'backIn' }),
+                    tween(node).to(0.22, { eulerAngles: new Vec3(e.x, spinAngle, e.z) }, { easing: 'quadIn' })
+                )
+                .call(() => {
+                    node.destroy();
+                    onDone();
+                })
+                .start();
+        }, delay);
     }
 }

@@ -43,8 +43,6 @@ export class GridController extends Component {
 
     @property(Node) public collectionNode: Node | null = null;
 
-    // ─── Public References (read by SelectionManager / other systems) ─
-
     public model: GridModel | null = null;
     public view: GridView | null = null;
     private factory: GridCellFactory | null = null;
@@ -53,9 +51,7 @@ export class GridController extends Component {
         this.initializeGrid();
     }
 
-    /**
-     * Wires the entire MVC + Rotation + Alignment pipeline.
-     */
+    // setup game systems
     public initializeGrid() {
         if (!this.stackPrefab) {
             console.warn('HexGridController: Stack Prefab is not assigned in the inspector!');
@@ -76,59 +72,51 @@ export class GridController extends Component {
             `${currentTiers} tiers × ${currentSlotsPerTier} slots, radius=${this.radius}`
         );
 
-        // ── 1. Factory ───────────────────────────────────────────────
+        // Factory
         this.factory = new GridCellFactory(this.stackPrefab!);
 
-        // ── 2. Model ─────────────────────────────────────────────────
+        // Model
         this.model = new GridModel(currentTiers, currentSlotsPerTier);
 
-        // ── 3. View ──────────────────────────────────────────────────
+        // View
         this.view = this.getComponent(GridView);
         if (!this.view) {
             this.view = this.addComponent(GridView);
         }
         this.view.buildGrid(this.model, this.factory, this.radius, this.tierHeight, this.collectionNode);
 
-        // ── 4. ShelfRotator: inject shelf nodes + model reference ─────
+        // ShelfRotator config
         if (this.shelfRotator) {
             this.shelfRotator.shelfNodes = this.view.getAllShelfNodes();
             this.shelfRotator.slotsPerTier = currentSlotsPerTier;
             this.shelfRotator.gridModel = this.model;
-            console.log(
-                `HexGridController: ShelfRotator wired with ` +
-                `${this.shelfRotator.shelfNodes.length} shelf nodes.`
-            );
         } else {
-            console.warn('HexGridController: ShelfRotator not assigned in inspector!');
+            console.warn('GridController: ShelfRotator not assigned in inspector');
         }
 
-        // ── 5. AlignmentChecker: inject all dependencies ──────────────
+        // Match checker config
         if (this.shelfMatchChecker) {
             this.shelfMatchChecker.gridModel = this.model;
             this.shelfMatchChecker.gridView = this.view;
             this.shelfMatchChecker.stackMover = this.stackMover;
 
-            // AlignmentChecker listens to events on the ShelfRotator's node
             if (this.shelfRotator && !this.shelfMatchChecker.shelfRotatorNode) {
                 this.shelfMatchChecker.shelfRotatorNode = this.shelfRotator.node;
             }
-            console.log('HexGridController: AlignmentChecker wired.');
         } else {
-            console.warn('HexGridController: AlignmentChecker not assigned in inspector!');
+            console.warn('GridController: ShelfMatchChecker not assigned in inspector');
         }
 
-        // ── 6. Spawn initial stacks ───────────────────────────────────
+        // Spawn level stacks
         this.loadLevelData();
 
-        // ── 7. Run initial drop-alignment check ───────────────────────
+        //Initial alignment pass
         if (this.shelfMatchChecker) {
             this.shelfMatchChecker.updateStackVerticalPositions();
         }
     }
 
-    /**
-     * Spawns stacks based on the Data-Driven level JSON.
-     */
+    // spawn level nodes
     private loadLevelData() {
         if (!this.model || !this.view || !this.factory) return;
 
@@ -140,11 +128,11 @@ export class GridController extends Component {
         const levelData: LevelData = this.levelDataAsset.json as unknown as LevelData;
         let spawns = levelData.spawns;
 
-        // PROCEDURAL GENERATION: Auto-fill if spawns array is empty or missing
+        // Fallback procedural generation if no levels loaded
         let tCount = levelData.tiers !== undefined ? levelData.tiers : this.tiers;
         let sCount = levelData.slotsPerTier !== undefined ? levelData.slotsPerTier : this.slotsPerTier;
 
-        // If we have the compact 2D tierData array, use that to build spawns
+        // Load from 2D grid matrix if available
         if (levelData.tierData && levelData.tierData.length > 0) {
             console.log("HexGridController: Using compact tierData array for level.");
             spawns = [];
@@ -180,7 +168,7 @@ export class GridController extends Component {
         }
 
         for (const spawn of spawns) {
-            // Safety Check: Prevent crashing if manual JSON data has indices outside the grid bounds
+            // bounds check
             if (spawn.tier >= tCount || spawn.index >= sCount) {
                 console.warn(`HexGridController: Skipping out-of-bounds spawn at tier ${spawn.tier}, index ${spawn.index}`);
                 continue;
