@@ -1,0 +1,42 @@
+{
+  "__type__": "cc.Material",
+  "_name": "HexBlockPink",
+  "_objFlags": 0,
+  "__editorExtras__": {},
+  "_native": "",
+  "_effectAsset": {
+    "__uuid__": "f648964e-8d32-41fc-9ac9-7a1e714dd17b",
+    "__expectedType__": "cc.EffectAsset"
+  },
+  "_techIdx": 0,
+  "_defines": [
+    {
+      "USE_INSTANCING": true
+    }
+  ],
+  "_states": [
+    {
+      "rasterizerState": {},
+      "blendState": {
+        "targets": [
+          {}
+        ]
+      },
+      "depthStencilState": {}
+    }
+  ],
+  "_props": [
+    {
+      "mainColor": {
+        "__type__": "cc.Color",
+        "r": 235,
+        "g": 92,
+        "b": 174,
+        "a": 255
+      },
+      "roughness": 0.55,
+      "metallic": 0,
+      "specularIntensity": 0.35
+    }
+  ]
+}

@@ -1,0 +1,96 @@
+{
+  "ver": "2.3.14",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "b8c32c8e-b77f-437d-89b5-3ac89191b3c1",
+  "files": [],
+  "subMetas": {
+    "3d6e9": {
+      "importer": "gltf-mesh",
+      "uuid": "b8c32c8e-b77f-437d-89b5-3ac89191b3c1@3d6e9",
+      "displayName": "",
+      "id": "3d6e9",
+      "name": "circle_1.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 1200
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0b7b5": {
+      "importer": "gltf-material",
+      "uuid": "b8c32c8e-b77f-437d-89b5-3ac89191b3c1@0b7b5",
+      "displayName": "",
+      "id": "0b7b5",
+      "name": "phong1.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "6a80f": {
+      "importer": "gltf-scene",
+      "uuid": "b8c32c8e-b77f-437d-89b5-3ac89191b3c1@6a80f",
+      "displayName": "",
+      "id": "6a80f",
+      "name": "Shelf_CirdlePart_04.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "b8c32c8e-b77f-437d-89b5-3ac89191b3c1@3d6e9"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [
+        "b8c32c8e-b77f-437d-89b5-3ac89191b3c1@0b7b5"
+      ],
+      "scenes": [
+        "b8c32c8e-b77f-437d-89b5-3ac89191b3c1@6a80f"
+      ]
+    }
+  }
+}

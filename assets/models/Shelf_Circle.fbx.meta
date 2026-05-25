@@ -1,0 +1,96 @@
+{
+  "ver": "2.3.14",
+  "importer": "fbx",
+  "imported": true,
+  "uuid": "4984ae36-bcaa-4f09-a725-e6fcf1875d2f",
+  "files": [],
+  "subMetas": {
+    "141fe": {
+      "importer": "gltf-mesh",
+      "uuid": "4984ae36-bcaa-4f09-a725-e6fcf1875d2f@141fe",
+      "displayName": "",
+      "id": "141fe",
+      "name": "circle.mesh",
+      "userData": {
+        "gltfIndex": 0,
+        "triangleCount": 1040
+      },
+      "ver": "1.1.1",
+      "imported": true,
+      "files": [
+        ".bin",
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "0b7b5": {
+      "importer": "gltf-material",
+      "uuid": "4984ae36-bcaa-4f09-a725-e6fcf1875d2f@0b7b5",
+      "displayName": "",
+      "id": "0b7b5",
+      "name": "phong1.material",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    },
+    "ec366": {
+      "importer": "gltf-scene",
+      "uuid": "4984ae36-bcaa-4f09-a725-e6fcf1875d2f@ec366",
+      "displayName": "",
+      "id": "ec366",
+      "name": "Shelf_Circle.prefab",
+      "userData": {
+        "gltfIndex": 0
+      },
+      "ver": "1.0.14",
+      "imported": true,
+      "files": [
+        ".json"
+      ],
+      "subMetas": {}
+    }
+  },
+  "userData": {
+    "imageMetas": [],
+    "fbx": {
+      "smartMaterialEnabled": true
+    },
+    "lods": {
+      "enable": false,
+      "hasBuiltinLOD": false,
+      "options": [
+        {
+          "screenRatio": 0.25,
+          "faceCount": 1
+        },
+        {
+          "screenRatio": 0.125,
+          "faceCount": 0.25
+        },
+        {
+          "screenRatio": 0.01,
+          "faceCount": 0.1
+        }
+      ]
+    },
+    "assetFinder": {
+      "meshes": [
+        "4984ae36-bcaa-4f09-a725-e6fcf1875d2f@141fe"
+      ],
+      "skeletons": [],
+      "textures": [],
+      "materials": [
+        "4984ae36-bcaa-4f09-a725-e6fcf1875d2f@0b7b5"
+      ],
+      "scenes": [
+        "4984ae36-bcaa-4f09-a725-e6fcf1875d2f@ec366"
+      ]
+    }
+  }
+}
