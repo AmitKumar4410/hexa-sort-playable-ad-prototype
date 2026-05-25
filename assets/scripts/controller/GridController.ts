@@ -67,11 +67,6 @@ export class GridController extends Component {
             if (levelData.slotsPerTier !== undefined) currentSlotsPerTier = levelData.slotsPerTier;
         }
 
-        console.log(
-            `HexGridController: Building grid — ` +
-            `${currentTiers} tiers × ${currentSlotsPerTier} slots, radius=${this.radius}`
-        );
-
         // Factory
         this.factory = new GridCellFactory(this.stackPrefab!);
 
@@ -121,7 +116,6 @@ export class GridController extends Component {
         if (!this.model || !this.view || !this.factory) return;
 
         if (!this.levelDataAsset || !this.levelDataAsset.json) {
-            console.warn("HexGridController: No Level Data Asset assigned! Falling back to empty grid.");
             return;
         }
 
@@ -134,7 +128,6 @@ export class GridController extends Component {
 
         // Load from 2D grid matrix if available
         if (levelData.tierData && levelData.tierData.length > 0) {
-            console.log("HexGridController: Using compact tierData array for level.");
             spawns = [];
             for (let t = 0; t < levelData.tierData.length; t++) {
                 const tierRow = levelData.tierData[t];
@@ -151,7 +144,6 @@ export class GridController extends Component {
                 }
             }
         } else if (!spawns || spawns.length === 0) {
-            console.log("HexGridController: Spawns array is empty. Auto-filling grid procedurally...");
             spawns = [];
             let matCount = this.hexMaterials.length > 0 ? this.hexMaterials.length : 1;
 
@@ -170,7 +162,6 @@ export class GridController extends Component {
         for (const spawn of spawns) {
             // bounds check
             if (spawn.tier >= tCount || spawn.index >= sCount) {
-                console.warn(`HexGridController: Skipping out-of-bounds spawn at tier ${spawn.tier}, index ${spawn.index}`);
                 continue;
             }
 

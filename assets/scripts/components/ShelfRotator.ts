@@ -111,7 +111,7 @@ export class ShelfRotator extends Component {
 
         // block input if collection is active
         if (this.gridModel && this.gridModel.lockedTiers && this.gridModel.lockedTiers.some(locked => locked)) {
-            console.log(`ShelfRotator: collection animation active, blocking rotation`);
+            // console.log(`ShelfRotator: collection animation active, blocking rotation`);
             this._activeTier = -1;
             return;
         }
@@ -120,7 +120,7 @@ export class ShelfRotator extends Component {
         if (this._lastActiveTier >= 0 && this._lastActiveTier !== selectedTier && this.gridModel) {
             if (this.gridModel.hasNonMatchingStackAtIndex0(this._lastActiveTier)) {
                 const resetAngle = this._originalShelfAngles.get(this._lastActiveTier) ?? 0;
-                console.log(`ShelfRotator: resetting tier ${this._lastActiveTier} to ${resetAngle.toFixed(1)}°`);
+                // console.log(`ShelfRotator: resetting tier ${this._lastActiveTier} to ${resetAngle.toFixed(1)}°`);
                 this.autoRotateTierBack(this._lastActiveTier, resetAngle);
                 this._lastActiveTier = -1;
             }
@@ -130,7 +130,7 @@ export class ShelfRotator extends Component {
 
         // check height limit lock
         if (this._activeTier >= 0 && this.gridModel && this.gridModel.shouldTierBeLocked(this._activeTier)) {
-            console.log(`ShelfRotator: tier ${this._activeTier} is locked by collection height`);
+            // console.log(`ShelfRotator: tier ${this._activeTier} is locked by collection height`);
             this.triggerBumpFeedback(this._activeTier);
             this._activeTier = -1;
             return;
@@ -144,12 +144,12 @@ export class ShelfRotator extends Component {
                 this._originalShelfAngles.set(this._activeTier, this._angleAtDragStart);
             }
         } else {
-            console.warn(`ShelfRotator: Could not determine valid tier for screenY ${pos.y}. shelfNodes length is ${this.shelfNodes.length}`);
+            // console.warn(`ShelfRotator: Could not determine valid tier for screenY ${pos.y}. shelfNodes length is ${this.shelfNodes.length}`);
             this._activeTier = -1;
         }
 
         this._state = RotatorState.IDLE;
-        console.log(`ShelfRotator: TOUCH_START at (${pos.x}, ${pos.y}) -> Active Tier: ${this._activeTier}`);
+        // console.log(`ShelfRotator: TOUCH_START at (${pos.x}, ${pos.y}) -> Active Tier: ${this._activeTier}`);
     }
 
     private onTouchMove(event: EventTouch) {
@@ -181,7 +181,7 @@ export class ShelfRotator extends Component {
     }
 
     private onTouchEnd(_event: EventTouch) {
-        console.log(`ShelfRotator: TOUCH_END -> State: ${this._state}, Active Tier: ${this._activeTier}`);
+        //console.log(`ShelfRotator: TOUCH_END -> State: ${this._state}, Active Tier: ${this._activeTier}`);
         if (this._state !== RotatorState.DRAGGING || this._activeTier < 0) {
             this._state = RotatorState.IDLE;
             return;
@@ -262,10 +262,10 @@ export class ShelfRotator extends Component {
                 this.node.emit(SHELF_EVENTS.SHELF_SNAPPED, payload);
                 EventBus.emit(GameEvents.SHELF_SNAPPED, payload);
 
-                console.log(
-                    `ShelfRotator: ✅ Tier ${tier} snapped to ${targetAngle.toFixed(1)}° ` +
-                    `(${stepsDelta} steps)`
-                );
+                // console.log(
+                //     `ShelfRotator: Tier ${tier} snapped to ${targetAngle.toFixed(1)}° ` +
+                //     `(${stepsDelta} steps)`
+                // );
 
                 this._state = RotatorState.IDLE;
                 this._lastActiveTier = this._activeTier;
@@ -286,7 +286,7 @@ export class ShelfRotator extends Component {
             .to(0.1, { eulerAngles: originalEuler })
             .start();
 
-        console.log(`ShelfRotator: 🔄 Bump feedback on tier ${tier}`);
+        // console.log(`ShelfRotator: Bump feedback on tier ${tier}`);
     }
 
     // auto-rotate back to starting position
@@ -311,7 +311,7 @@ export class ShelfRotator extends Component {
                 this.node.emit(SHELF_EVENTS.SHELF_SNAPPED, payload);
                 EventBus.emit(GameEvents.SHELF_SNAPPED, payload);
 
-                console.log(`ShelfRotator: 🔄 Auto-rotated tier ${tier} back to start angle ${targetAngle}`);
+                // console.log(`ShelfRotator: Auto-rotated tier ${tier} back to start angle ${targetAngle}`);
                 if (this._activeTier === -1) {
                     this._state = RotatorState.IDLE;
                 }

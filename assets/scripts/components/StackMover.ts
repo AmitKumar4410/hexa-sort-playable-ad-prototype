@@ -1,8 +1,6 @@
 import { _decorator, Component, Node, tween, Tween, Vec3 } from 'cc';
 import { HexStack } from './HexStack';
 import { GridModel } from './GridModel';
-import { EventBus } from '../EventBus';
-import { GameEvents } from '../data/Events';
 const { ccclass, property } = _decorator;
 
 @ccclass('StackMover')
@@ -81,19 +79,9 @@ export class StackMover extends Component {
 
                 const newStackCount = this.collectionStack ? this.collectionStack.children.length : 0;
 
-                // check if level complete
-                if (newStackCount >= this.winThreshold) {
-                    this.triggerWin();
-                }
-
                 onComplete?.(newStackCount);
             })
             .start();
-    }
-
-    private triggerWin() {
-        console.log('StackMover: WIN CONDITION MET!');
-        EventBus.emit(GameEvents.GAME_WON);
     }
 }
 

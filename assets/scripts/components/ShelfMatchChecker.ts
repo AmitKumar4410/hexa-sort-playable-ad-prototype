@@ -4,7 +4,8 @@ import { GridView } from './GridView';
 import { StackMover } from './StackMover';
 import { HexStack } from './HexStack';
 import { SHELF_EVENTS } from './ShelfRotator';
-import { ShelfSnappedPayload } from '../data/Events';
+import { ShelfSnappedPayload, GameEvents } from '../data/Events';
+import { EventBus } from '../EventBus';
 const { ccclass, property } = _decorator;
 
 @ccclass('ShelfMatchChecker')
@@ -33,7 +34,7 @@ export class ShelfMatchChecker extends Component {
 
 
     private onShelfSnapped(payload: ShelfSnappedPayload) {
-        console.log(`ShelfMatchChecker: Tier ${payload.tier} snapped, checking matches`);
+        // console.log(`ShelfMatchChecker: Tier ${payload.tier} snapped, checking matches`);
         this.checkAllTiersForCollection();
     }
 
@@ -89,7 +90,7 @@ export class ShelfMatchChecker extends Component {
 
     private scheduleFullColumnClear() {
         this._isClearingColumn = true;
-        console.log("ShelfMatchChecker: Collection clear threshold reached");
+        // console.log("ShelfMatchChecker: Collection clear threshold reached");
 
         const collectionNode = this.gridView?.getCollectionNode();
 
@@ -104,6 +105,7 @@ export class ShelfMatchChecker extends Component {
                         destroyed++;
                         if (destroyed === children.length) {
                             this.scheduleOnce(() => {
+                                EventBus.emit(GameEvents.GAME_WON);
                                 PhysicsSystem.instance.syncSceneToPhysics();
                                 this.gridModel?.clearCollection();
                                 this._isClearingColumn = false;
@@ -139,8 +141,14 @@ export class ShelfMatchChecker extends Component {
                     tween(node).to(0.22, { eulerAngles: new Vec3(e.x, spinAngle, e.z) }, { easing: 'quadIn' })
                 )
                 .call(() => {
-                    node.destroy();
-                    onDone();
+                    // hide immediately so it stops rendering this frame,
+                    // then defer destroy to next frame to avoid the
+                    // "[Scene] draw must be inside a render pass" warning
+                    node.active = false;
+                    this.scheduleOnce(() => {
+                        node.destroy();
+                        onDone();
+                    }, 0);
                 })
                 .start();
         }, delay);
